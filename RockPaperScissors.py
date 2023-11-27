@@ -3,7 +3,8 @@ import random
 from enum import Enum
 import numpy as np
 import logging
-logging.basicConfig(format='%(message)s', level=logging.ERROR)
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+import Strategies
 
 State = Enum('State', ['HUMAN_WINS', 'COMPUTER_WINS', 'TIE'])
 Throws = Enum('Throw', ['ROCK', 'PAPER', 'SCISSORS', 'EXIT'])
@@ -11,6 +12,9 @@ Throws = Enum('Throw', ['ROCK', 'PAPER', 'SCISSORS', 'EXIT'])
 
 class Rounds:
     rounds = []
+
+    def __init__(self, rounds=None):
+        Rounds.rounds = rounds if rounds is not None else []
 
     def add_round(self, r):
         self.rounds.append(r)
@@ -380,39 +384,48 @@ def validate_throw(t):
 
 
 def evaluate_game(p1, p2):
-    if p1 == p2:
+    if p1.value == p2.value:
         return State['TIE']
-    if p1 == Throws['ROCK']:
-        if p2 == Throws['PAPER']:
+    if p1.value == Throws['ROCK'].value:
+        if p2.value == Throws['PAPER'].value:
             return State['COMPUTER_WINS']
         return State['HUMAN_WINS']
-    if p1 == Throws['PAPER']:
-        if p2 == Throws['SCISSORS']:
+    if p1.value == Throws['PAPER'].value:
+        if p2.value == Throws['SCISSORS'].value:
             return State['COMPUTER_WINS']
         return State['HUMAN_WINS']
-    if p2 == Throws['ROCK']:
+    if p2.value == Throws['ROCK'].value:
         return State['COMPUTER_WINS']
     return State['HUMAN_WINS']
 
 
 def main(all_rounds):
-    # Get Computer Throw
-    p2_throw = smart_throw(all_rounds)
+    computer = Strategies.CounterCopy()
 
-    # Get Player Throw
-    p1_throw = None
-    while p1_throw is None:
-        p1_throw = input("What will you Throw? > ")
-        p1_throw = validate_throw(p1_throw)
-    if p1_throw == Throws['EXIT']:
-        print('exiting program')
-        exit()
-    this_round = Round(p1_throw, p2_throw)
-    this_round.display_round()
-    all_rounds.add_round(this_round)
-    # all_rounds.display_rounds()
-    all_rounds.display_percentages()
-    main(all_rounds)
+    def loop(all_rounds):
+        # Get Computer Throw
+        # p2_throw = smart_throw(all_rounds)
+        p2_throw = computer.throw()
+
+        # Get Player Throw
+        p1_throw = None
+        while p1_throw is None:
+            p1_throw = input("What will you Throw? > ")
+            p1_throw = validate_throw(p1_throw)
+        if p1_throw == Throws['EXIT']:
+            print('exiting program')
+            exit()
+        this_round = Round(p1_throw, p2_throw)
+        this_round.display_round()
+        all_rounds.add_round(this_round)
+        # all_rounds.display_rounds()
+        all_rounds.display_percentages()
+
+        computer.update(all_rounds)
+
+        loop(all_rounds)
+
+    loop(all_rounds)
 
 
 if __name__ == "__main__":
