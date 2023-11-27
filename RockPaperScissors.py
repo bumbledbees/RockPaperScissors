@@ -94,17 +94,17 @@ def copy_opponent_last_move(rounds):
 
 
 def beat(throw):
-    if throw == Throws['ROCK']:
+    if throw.value == Throws['ROCK'].value:
         return Throws['PAPER']
-    if throw == Throws['PAPER']:
+    if throw.value == Throws['PAPER'].value:
         return Throws['SCISSORS']
     return Throws['ROCK']
 
 
 def lose(throw):
-    if throw == Throws['ROCK']:
+    if throw.value == Throws['ROCK'].value:
         return Throws['SCISSORS']
-    if throw == Throws['PAPER']:
+    if throw.value == Throws['PAPER'].value:
         return Throws['ROCK']
     return Throws['PAPER']
 
@@ -153,10 +153,10 @@ def smart_throw(rounds):
     wins = rounds.get_opponent_throws_in_outcome(State['HUMAN_WINS'], previous_n_rounds=5)
     win_count = [0, 0, 0]  # R, P, S
     for w in wins:
-        if w == Throws['ROCK']:
+        if w.value == Throws['ROCK'].value:
             win_count[0] += 1
             continue
-        if w == Throws['PAPER']:
+        if w.value == Throws['PAPER'].value:
             win_count[1] += 1
             continue
         win_count[2] += 1
@@ -172,10 +172,10 @@ def smart_throw(rounds):
         ties = rounds.get_opponent_throws_in_outcome(State['TIE'], previous_n_rounds=5)
         loss_count = [0, 0, 0]  # R, P, S
         for loss in losses+ties:
-            if loss == Throws['ROCK']:
+            if loss.value == Throws['ROCK'].value:
                 loss_count[0] -= 1
                 continue
-            if loss == Throws['PAPER']:
+            if loss.value == Throws['PAPER'].value:
                 loss_count[1] -= 1
                 continue
             loss_count[2] -= 1
@@ -223,9 +223,9 @@ def smart_throw(rounds):
         # print(consecutive)
         probability_of_throwing_same = (0.00396853*(consecutive**3)) - (0.0811131*(consecutive**2)) + (0.519033*consecutive) - 0.0220979
         repetitive_throws = [0, 0, 0]
-        if last_throw == Throws['ROCK']:
+        if last_throw.value == Throws['ROCK'].value:
             repetitive_throws[0] += probability_of_throwing_same
-        elif last_throw == Throws['PAPER']:
+        elif last_throw.value == Throws['PAPER'].value:
             repetitive_throws[1] += probability_of_throwing_same
         else:
             repetitive_throws[2] += probability_of_throwing_same
@@ -237,9 +237,9 @@ def smart_throw(rounds):
     throws = rounds.get_throws(opponent=False, previous_n_rounds=2)
     if len(list(set(throws))) == 1:
         repetitive_throws = [0, 0, 0]
-        if throws[0] == Throws['ROCK']:
+        if throws[0].value == Throws['ROCK'].value:
             repetitive_throws[1] += 1
-        elif throws[0] == Throws['PAPER']:
+        elif throws[0].value == Throws['PAPER'].value:
             repetitive_throws[2] += 1
         else:
             repetitive_throws[0] += 1
@@ -250,9 +250,9 @@ def smart_throw(rounds):
     last_round = rounds.get_rounds(previous_n_rounds=1)[0]
     if last_round.outcome == State['TIE']:
         tie_rule = [0, 0, 0]
-        if last_round.p1 == Throws['ROCK']:
+        if last_round.p1.value == Throws['ROCK'].value:
             tie_rule[1] += 1
-        elif last_round.p1 == Throws['PAPER']:
+        elif last_round.p1.value == Throws['PAPER'].value:
             tie_rule[2] += 1
         else:
             tie_rule[0] += 1
@@ -276,9 +276,9 @@ def smart_throw(rounds):
         logging.info('STRATEGY DETECTED: YOU ARE PLAYING WHAT I LAST PLAYED')
         play_last = [0, 0, 0]
         i_last_played = last_round.p2
-        if i_last_played == Throws['ROCK']:
+        if i_last_played.value == Throws['ROCK'].value:
             play_last[0] += 1
-        elif i_last_played == Throws['PAPER']:
+        elif i_last_played.value == Throws['PAPER'].value:
             play_last[1] += 1
         else:
             play_last[2] += 1
@@ -301,9 +301,9 @@ def smart_throw(rounds):
         logging.info('STRATEGY DETECTED: YOU ARE PLAYING WHAT WOULD\'VE BEATEN WHAT I LAST PLAYED')
         beat_last = [0, 0, 0]
         i_last_played = last_round.p2
-        if i_last_played == Throws['ROCK']:
+        if i_last_played.value == Throws['ROCK'].value:
             beat_last[1] += 1
-        elif i_last_played == Throws['PAPER']:
+        elif i_last_played.value == Throws['PAPER'].value:
             beat_last[2] += 1
         else:
             beat_last[0] += 1
@@ -326,9 +326,9 @@ def smart_throw(rounds):
         logging.info('STRATEGY DETECTED: YOU ARE PLAYING WHAT WOULD\'VE LOST TO WHAT I LAST PLAYED')
         lose_last = [0, 0, 0]
         i_last_played = last_round.p2
-        if i_last_played == Throws['ROCK']:
+        if i_last_played.value == Throws['ROCK'].value:
             lose_last[2] += 1
-        elif i_last_played == Throws['PAPER']:
+        elif i_last_played.value == Throws['PAPER'].value:
             lose_last[0] += 1
         else:
             lose_last[1] += 1
@@ -344,9 +344,9 @@ def smart_throw(rounds):
         pattern_strat_probs = [0, 0, 0]
         next_throw = pattern[0]
         # print(f'pattern detected: {pattern}')
-        if next_throw == Throws['ROCK']:
+        if next_throw.value == Throws['ROCK'].value:
             pattern_strat_probs[0] += 1
-        elif next_throw == Throws['PAPER']:
+        elif next_throw.value == Throws['PAPER'].value:
             pattern_strat_probs[1] += 1
         else:
             pattern_strat_probs[2] += 1
@@ -400,7 +400,7 @@ def evaluate_game(p1, p2):
 
 
 def main(all_rounds):
-    computer = Strategies.CounterCopy(computer=True)  # "computer" / p2
+    computer = Strategies.BeatLastStrat(computer=True)  # "computer" / p2
     comp2 = Strategies.CopyStrat(computer=False)  # "human" / p1
     import math
 
@@ -416,7 +416,7 @@ def main(all_rounds):
         while p1_throw is None:
             p1_throw = input("What will you Throw? > ")
             p1_throw = validate_throw(p1_throw)
-        if p1_throw == Throws['EXIT']:
+        if p1_throw.value == Throws['EXIT'].value:
             print('exiting program')
             exit()
         this_round = Round(p1_throw, p2_throw)
@@ -426,7 +426,7 @@ def main(all_rounds):
         all_rounds.display_percentages()
 
         computer.update(all_rounds)
-        comp2.update(all_rounds)
+        # comp2.update(all_rounds)
 
         loop(all_rounds, max_rounds-1)
 

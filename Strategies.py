@@ -17,9 +17,9 @@ class Strategy:
 
     @staticmethod
     def counter_throw(throw):
-        if throw == Throws['ROCK']:
+        if throw.value == Throws['ROCK'].value:
             return Throws['PAPER']
-        if throw == Throws['PAPER']:
+        if throw.value == Throws['PAPER'].value:
             return Throws['SCISSORS']
         return Throws['ROCK']
 
@@ -96,8 +96,17 @@ class CopyStrat(Strategy):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
         if self.computer:
-            return self.rounds.rounds[-1].p1  # copy human's last move
-        return self.rounds.rounds[-1].p2  # copy computer's last move
+            return self.rounds.rounds[-1].p1  # i am p2, copy p1's last move
+        return self.rounds.rounds[-1].p2  # i am p1, copy p2's last move
+
+
+class BeatLastStrat(Strategy):
+    def throw(self):
+        if self.rounds.empty():
+            return random.choice(list(Throws)[0:3])  # random throw
+        if self.computer:
+            return self.counter_throw(self.rounds.rounds[-1].p1)  # i am p2, beat p1's last move
+        return self.counter_throw(self.rounds.rounds[-1].p2)  # i am p1, beat p2's last move
 
 
 class CounterCopy(Strategy):
