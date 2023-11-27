@@ -2,7 +2,6 @@
 import random
 from RockPaperScissors import Throws, Rounds
 import logging
-logging.basicConfig(format='%(message)s', level=logging.INFO)
 
 
 class Strategy:
@@ -66,7 +65,7 @@ class Strategy:
 
         frequency = strat_count / lookback
         consecutive_frequency = consecutive / lookback
-        g = strat(computer=False, rounds=self.rounds)
+        g = strat(computer=(not self.computer), rounds=self.rounds)
         logging.info(f'{g.__class__.__name__} FREQUENCY: {frequency} CONSECUTIVE_FREQ: {consecutive_frequency}')
         confidence = frequency  # (consecutive_frequency + frequency)/2
         if consecutive > consecutive_freq_thresh:

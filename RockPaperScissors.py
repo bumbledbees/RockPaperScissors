@@ -3,7 +3,7 @@ import random
 from enum import Enum
 import numpy as np
 import logging
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', level=logging.ERROR)
 import Strategies
 
 State = Enum('State', ['HUMAN_WINS', 'COMPUTER_WINS', 'TIE'])
@@ -400,15 +400,19 @@ def evaluate_game(p1, p2):
 
 
 def main(all_rounds):
-    computer = Strategies.CounterCopy()
+    computer = Strategies.CounterCopy(computer=True)  # "computer" / p2
+    comp2 = Strategies.CopyStrat(computer=False)  # "human" / p1
+    import math
 
-    def loop(all_rounds):
+    def loop(all_rounds, max_rounds=math.inf):
+        if max_rounds == 0:
+            exit()
         # Get Computer Throw
         # p2_throw = smart_throw(all_rounds)
         p2_throw = computer.throw()
 
         # Get Player Throw
-        p1_throw = None
+        p1_throw = None  # comp2.throw()
         while p1_throw is None:
             p1_throw = input("What will you Throw? > ")
             p1_throw = validate_throw(p1_throw)
@@ -422,10 +426,11 @@ def main(all_rounds):
         all_rounds.display_percentages()
 
         computer.update(all_rounds)
+        comp2.update(all_rounds)
 
-        loop(all_rounds)
+        loop(all_rounds, max_rounds-1)
 
-    loop(all_rounds)
+    loop(all_rounds, max_rounds=100)
 
 
 if __name__ == "__main__":
