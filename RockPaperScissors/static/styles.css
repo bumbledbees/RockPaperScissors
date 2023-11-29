@@ -1,0 +1,14 @@
+.center {
+    text-align: center;
+}
+
+h3 { 
+    text-align: center;
+}
+
+.btn-group {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+}

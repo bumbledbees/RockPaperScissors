@@ -1,12 +1,15 @@
 # Amelia Sinclaire 2023
-import random
-from RockPaperScissors import Throws, Rounds, State, normalize
+
 import logging
+import random
+
 import numpy as np
+
+from RockPaperScissors.Game import normalize, Rounds, State, Throws
 
 
 class Strategy:
-    def __init__(self, computer=True, rounds=None):
+    def __init__(self, rounds=None, computer=True):
         self.computer = computer
         self.rounds = rounds if rounds is not None else Rounds()
 
@@ -47,8 +50,10 @@ class Strategy:
             current_round = lookback_rounds[-1]
             del lookback_rounds[-1]
 
-            generator = strat(computer=(not self.computer), rounds=Rounds(lookback_rounds))
+            generator = strat(computer=(not self.computer),
+                              rounds=Rounds(lookback_rounds))
             expected = generator.throw()
+
             if self.computer:
                 actual = current_round.p1
             else:
@@ -66,7 +71,8 @@ class Strategy:
         g = strat(computer=(not self.computer), rounds=self.rounds)
         opponent_next_throw = g.throw()
         logging.info(
-            f'{g.__class__.__name__} FREQUENCY: {frequency} | CONSECUTIVE: {consecutive} | OPPONENT NEXT THROW : {opponent_next_throw}')
+            f'{g.__class__.__name__} FREQUENCY: {frequency} |CONSECUTIVE: '
+            f'{consecutive} | OPPONENT NEXT THROW : {opponent_next_throw}')
 
         output = {
             "opponent_next_throw": opponent_next_throw,
@@ -117,7 +123,8 @@ class Strategy:
         all_found_patterns = []
         for n in range(1, 1 + (len(opponent_throws) // 2)):
             # print(f'checking patterns of length {n}')
-            is_pattern, pattern, consecutive = self.detect_pattern(opponent_throws, n)
+            is_pattern, pattern, consecutive = (
+                self.detect_pattern(opponent_throws, n))
             if is_pattern:
                 all_found_patterns.append((pattern, consecutive))
         return all_found_patterns
@@ -153,24 +160,30 @@ class BeatLast(Strategy):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
         if self.computer:
-            return self.counter_throw(self.rounds.rounds[-1].p1)  # i am p2, beat p1's last move
-        return self.counter_throw(self.rounds.rounds[-1].p2)  # i am p1, beat p2's last move
+            # i am p2, beat p1's last move
+            return self.counter_throw(self.rounds.rounds[-1].p1)
+        # i am p1, beat p2's last move
+        return self.counter_throw(self.rounds.rounds[-1].p2)
 
 
 class LoseLast(Strategy):
     def throw(self):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
+        last_round = self.rounds.rounds[-1]
         if self.computer:
-            return self.counter_throw(self.counter_throw(self.rounds.rounds[-1].p1))  # i am p2, lose to p1's last move
-        return self.counter_throw(self.counter_throw(self.rounds.rounds[-1].p2))  # i am p1, lose to p2's last move
+            # i am p2, lose to p1's last move
+            return self.counter_throw(self.counter_throw(last_round.p1))
+        # i am p1, lose to p2's last move
+        return self.counter_throw(self.counter_throw(last_round.p2))
 
 
 class SwitchAfterTwo(Strategy):
     def throw(self):
         if len(self.rounds.rounds) < 2:
             return random.choice(list(Throws)[0:3])  # random throw
-        # if I have thrown the same for the last two turns, I won't throw the same again
+        # assume if I have thrown the same thing for the last two turns,
+        # I won't throw the same again
         p1_last_move = self.rounds.rounds[-1].p1
         p1_second_last_move = self.rounds.rounds[-2].p1
         p2_last_move = self.rounds.rounds[-1].p2
@@ -183,7 +196,7 @@ class SwitchAfterTwo(Strategy):
             last_move = p1_last_move
         if same_last_move:
             # ex. if I throw scissors twice in a row, I won't throw it again.
-            # instead I will throw ROCK or PAPER, preferring the next in the cycle
+            # rather I'll throw ROCK or PAPER, preferring the next in the cycle
             return self.counter_throw(last_move)
         # if not last two same, I throw randomly
         return random.choice(list(Throws)[0:3])  # random throw
@@ -197,23 +210,27 @@ class StickToWins(Strategy):
         p1_last_move = self.rounds.rounds[-1].p1
         p2_last_move = self.rounds.rounds[-1].p2
         if self.computer:
-            won_last = self.rounds.rounds[-1].outcome.value == State['COMPUTER_WINS'].value
+            won_last = (self.rounds.rounds[-1].outcome.value
+                        == State['COMPUTER_WINS'].value)
             last_move = p2_last_move
         else:
-            won_last = self.rounds.rounds[-1].outcome.value == State['HUMAN_WINS'].value
+            won_last = (self.rounds.rounds[-1].outcome.value
+                        == State['PLAYER_WINS'].value)
             last_move = p1_last_move
         if won_last:
             return last_move
-        # if I didn't win last round, throw whatever got me the most wins previously
+        # if I didn't win last round, throw whatever got me the most wins
+        # previously
         if self.computer:
-            wins = self.rounds.get_throws_in_outcome(self.computer, State['COMPUTER_WINS'])
+            wins = self.rounds.get_throws_in_outcome(self.computer,
+                                                     State['COMPUTER_WINS'])
         else:
-            wins = self.rounds.get_throws_in_outcome(self.computer, State['HUMAN_WINS'])
+            wins = self.rounds.get_throws_in_outcome(self.computer,
+                                                     State['PLAYER_WINS'])
         if len(wins) == 0:  # if I haven't won, then throw randomly
             return random.choice(list(Throws)[0:3])  # random throw
 
-        # Program to find most frequent
-        # element in a list
+        # Program to find most frequent element in a list
         return self.most_frequent(wins)
 
 
@@ -221,16 +238,20 @@ class ChangeIfLoss(Strategy):
     def throw(self):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
-        # if I just LOST the previous round, I should NOT throw the same thing again
+        # if I just LOST the previous round, I should NOT throw
+        # the same thing again
         p1_last_move = self.rounds.rounds[-1].p1
         p2_last_move = self.rounds.rounds[-1].p2
         if self.computer:
-            lost_last = self.rounds.rounds[-1].outcome.value == State['COMPUTER_WINS'].value
+            lost_last = (self.rounds.rounds[-1].outcome.value
+                         == State['COMPUTER_WINS'].value)
             last_move = p2_last_move
         else:
-            lost_last = self.rounds.rounds[-1].outcome.value == State['HUMAN_WINS'].value
+            lost_last = (self.rounds.rounds[-1].outcome.value
+                         == State['PLAYER_WINS'].value)
             last_move = p1_last_move
-        lost_or_tie_last = lost_last or self.rounds.rounds[-1].outcome.value == State['TIE'].value
+        lost_or_tie_last = (lost_last or self.rounds.rounds[-1].outcome.value
+                            == State['TIE'].value)
         if lost_or_tie_last:
             return self.counter_throw(last_move)
         # if I didn't lose or tie last round, throw random
@@ -241,7 +262,8 @@ class ChangeIfTie(Strategy):
     def throw(self):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
-        # if I just TIEd the previous round, I will play what would've beaten the TIE
+        # if I just TIEd the previous round, I will play what would've beaten
+        # the TIE
         p1_last_move = self.rounds.rounds[-1].p1
         p2_last_move = self.rounds.rounds[-1].p2
         if self.computer:
@@ -260,7 +282,9 @@ class StatisticalStrat(Strategy):
         if self.rounds.empty():
             return random.choice(list(Throws)[0:3])  # random throw
         choices = (list(Throws)[0:3])
-        weights = [0.354, 0.296, 0.350]  # random frequencies I found online: https://www.quora.com/Is-there-any-research-or-data-into-what-people-usually-throw-first-in-a-game-of-Rock-Paper-Scissors
+        weights = [0.354, 0.296, 0.350]
+        # random frequencies I found online:
+        # https://www.quora.com/Is-there-any-research-or-data-into-what-people-usually-throw-first-in-a-game-of-Rock-Paper-Scissors
         weights = normalize(weights)
         # non-deterministically sample from the choices by their frequencies
         opponent_throw = random.choices(choices, weights=weights, k=1)[0]
@@ -339,17 +363,23 @@ class SameliaBot(Strategy):
             opponent_probability[beat_most_freq['opponent_next_throw'].value - 1] += beat_most_freq_weight
 
         if len(all_patterns) > 0:
-            all_patterns = list(reversed(sorted(all_patterns, key=lambda x: (len(x[0]), x[1]))))
+            all_patterns = reversed(sorted(all_patterns,
+                                           key=lambda x: (len(x[0]), x[1])))
+
             for p in all_patterns:
                 pattern, consecutive = p
-                pattern_weight = (((1 + consecutive)+((len(pattern)**2)*0.05)) / len(all_patterns)) * 1.5
-                logging.warning(f'STRATEGY DETECTED: Pattern {pattern} : {consecutive}')
+                pattern_weight = (
+                    1.5 * (((1 + consecutive) + (len(pattern) ** 2) * 0.05)
+                           / len(all_patterns)))
+                logging.warning(f'STRATEGY DETECTED: Pattern {pattern} '
+                                f': {consecutive}')
                 opponent_next_throw = pattern[0]
                 opponent_probability[opponent_next_throw.value-1] += pattern_weight
 
         opponent_probability = normalize(opponent_probability)
         # logging.warning(opponent_probability)
-        index_max = np.argwhere(opponent_probability == np.amax(opponent_probability))
+        index_max = np.argwhere(opponent_probability
+                                == np.amax(opponent_probability))
         opponent_next_throw = list(Throws)[random.choice(index_max)[0]]
         # counter opponent's most likely move
         return self.counter_throw(opponent_next_throw)

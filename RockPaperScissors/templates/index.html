@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <meta charset="UTF-8">
+    <title>Rock, Paper, Scissors!</title>
+    <link rel="stylesheet"
+          type="text/css" 
+          href="{{url_for('static', filename='styles.css')}}">
+    <script type="text/javascript"
+            src="{{url_for('static', filename='moveHandler.js')}}">
+    </script>
+</head>
+<body>
+    <head>
+        <h1 class="center">Rock, Paper, Scissors!</h1>
+    </head>
+    <main>
+        <div class="btn-group">
+            <button type="button" onclick="submitMove('ROCK')">Rock</button>
+            <button type="button" onclick="submitMove('PAPER')">Paper</button>
+            <button type="button" onclick="submitMove('SCISSORS')">Scissors</button>
+        </div>
+
+        <br>
+
+        <h3 id='playerMove'></h3>
+        <h3 id='computerMove'></h3>
+        <h3 id='result'></h3>
+    </main>
+</body>
+</html>

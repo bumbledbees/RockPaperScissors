@@ -1,27 +1,37 @@
 # Amelia Sinclaire 2023
-import random
-from enum import Enum
-import numpy as np
-import logging
-logging.basicConfig(format='%(message)s', level=logging.WARN)
-import Strategies
 
-State = Enum('State', ['HUMAN_WINS', 'COMPUTER_WINS', 'TIE'])
-Throws = Enum('Throw', ['ROCK', 'PAPER', 'SCISSORS', 'EXIT'])
+from enum import StrEnum
+import logging
+import random
+
+import numpy as np
+
+
+logging.basicConfig(format='%(message)s', level=logging.WARN)
+
+
+class State(StrEnum):
+    PLAYER_WINS = 'PLAYER'
+    COMPUTER_WINS = 'COMPUTER'
+    TIE = 'TIE'
+
+
+class Throws(StrEnum):
+    ROCK = 'ROCK'
+    PAPER = 'PAPER'
+    SCISSORS = 'SCISSORS'
 
 
 class Rounds:
-    rounds = []
-
     def __init__(self, rounds=None):
-        Rounds.rounds = rounds if rounds is not None else []
+        self.rounds = rounds if rounds is not None else []
 
     def add_round(self, r):
         self.rounds.append(r)
 
     def display_rounds(self):
         for idx, r in enumerate(self.rounds):
-            print(f'[{idx}] ({r.p1.name}, {r.p2.name}, {r.outcome.name})')
+            print(f'[{idx}] ({r.p1}, {r.p2}, {r.outcome})')
 
     def empty(self):
         return len(self.rounds) == 0
@@ -29,11 +39,12 @@ class Rounds:
     def opponent_last_move(self):
         return self.rounds[-1].p1
 
-    def get_throws_in_outcome(self, computer=True, outcome=State['TIE'], previous_n_rounds=None):
+    def get_throws_in_outcome(self, computer=True, outcome=State.TIE,
+                              previous_n_rounds=None):
         n = 0 if previous_n_rounds is None else -previous_n_rounds
         throws = []
         for r in self.rounds[n:]:
-            if r.outcome.value == outcome.value:
+            if r.outcome == outcome:
                 if computer:
                     throws.append(r.p2)
                 else:
@@ -60,16 +71,23 @@ class Rounds:
     def percent_outcome(self, outcome, previous_n_rounds=None):
         if self.empty():
             return 0
-        return 100*len(self.get_throws_in_outcome(True, outcome, previous_n_rounds)) / len(self.rounds)
+
+        return (
+            len(self.get_throws_in_outcome(True, outcome, previous_n_rounds))
+            / len(self.rounds) * 100)
 
     def display_percentages(self):
         if self.empty():
             return
-        percent_wins = self.percent_outcome(State['HUMAN_WINS'])
-        percent_ties = self.percent_outcome(State['TIE'])
-        percent_loss = self.percent_outcome(State['COMPUTER_WINS'])
-        ratio = str(f' | Ratio: {percent_wins/percent_loss:.2f}') if percent_loss > 0 else ""
-        print(f'Win: {percent_wins:.2f}% | Lose: {percent_loss:.2f}% | Tie: {percent_ties:.2f}%{ratio}')
+
+        percent_wins = self.percent_outcome(State.PLAYER_WINS)
+        percent_ties = self.percent_outcome(State.TIE)
+        percent_loss = self.percent_outcome(State.COMPUTER_WINS)
+
+        ratio = (f' | Ratio: {percent_wins/percent_loss:.2f}'
+                 if percent_loss > 0 else "")
+        print(f'Win: {percent_wins:.2f}% | Lose: {percent_loss:.2f}% | '
+              f'Tie: {percent_ties:.2f}%{ratio}')
 
 
 class Round:
@@ -79,12 +97,12 @@ class Round:
         self.outcome = evaluate_game(p1, p2)
 
     def display_round(self):
-        print(f'p1: {self.p1.name}')
-        print(f'p2: {self.p2.name}')
+        print(f'p1: {self.p1}')
+        print(f'p2: {self.p2}')
         print(self.outcome.name)
 
     def display_oneline(self):
-        print(f'({self.p1.name}, {self.p2.name}, {self.outcome.name})')
+        print(f'({self.p1}, {self.p2}, {self.outcome})')
 
 
 def random_throw():
@@ -94,43 +112,39 @@ def random_throw():
 def normalize(v):
     v = np.asarray(v)
     norm = np.linalg.norm(v)
-    if norm == 0:
-        return v
-    return v / norm
+    return v if norm == 0 else v / norm
 
 
-def validate_throw(t):
-    throw = t.upper()
+def validate_throw(throw):
+    throw = throw.upper()
     for t in Throws:
-        if throw == t.name:
+        if throw == t.name or throw == t.name[0]:
             return t
-    match throw:
-        case "R": return Throws['ROCK']
-        case "P": return Throws['PAPER']
-        case "S": return Throws['SCISSORS']
-        case _: return None
+    return None
 
 
 def evaluate_game(p1, p2):
-    if p1.value == p2.value:
-        return State['TIE']
-    if p1.value == Throws['ROCK'].value:
-        if p2.value == Throws['PAPER'].value:
-            return State['COMPUTER_WINS']
-        return State['HUMAN_WINS']
-    if p1.value == Throws['PAPER'].value:
-        if p2.value == Throws['SCISSORS'].value:
-            return State['COMPUTER_WINS']
-        return State['HUMAN_WINS']
-    if p2.value == Throws['ROCK'].value:
-        return State['COMPUTER_WINS']
-    return State['HUMAN_WINS']
+    if p1 == p2:
+        return State.TIE
+    if p1 == Throws.ROCK:
+        if p2 == Throws.PAPER:
+            return State.COMPUTER_WINS
+        return State.PLAYER_WINS
+    if p1 == Throws.PAPER:
+        if p2 == Throws.SCISSORS:
+            return State.COMPUTER_WINS
+        return State.PLAYER_WINS
+    if p2 == Throws.ROCK:
+        return State.COMPUTER_WINS
+    return State.PLAYER_WINS
 
 
+"""
+# import math
+# from RockPaperScissors import Strategies
 def main(all_rounds):
     computer = Strategies.SameliaBot(computer=True)  # "computer" / p2
     comp2 = Strategies.BeatMostFreq(computer=False)  # "human" / p1
-    import math, time
 
     def loop(all_rounds, max_rounds=math.inf):
         if max_rounds == 0:
@@ -143,10 +157,10 @@ def main(all_rounds):
         p1_throw = None  # comp2.throw()
         while p1_throw is None:
             p1_throw = input("What will you Throw? > ")
+            if p1_throw.lower() == 'exit':
+                print('exiting program')
+                exit()
             p1_throw = validate_throw(p1_throw)
-        if p1_throw.value == Throws['EXIT'].value:
-            print('exiting program')
-            exit()
         this_round = Round(p1_throw, p2_throw)
         this_round.display_round()
         all_rounds.add_round(this_round)
@@ -164,3 +178,4 @@ def main(all_rounds):
 if __name__ == "__main__":
     all_rounds = Rounds()
     main(all_rounds)
+"""

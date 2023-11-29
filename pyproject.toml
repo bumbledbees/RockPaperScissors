@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "RockPaperScissors"
+version = "0.1.0"
+description = """Rock Paper Scissors engine designed to beat human players \
+                 more often than random chance"""
+authors = ["Amelia Sinclaire <asinclaire.hri@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-dotenv = "^1.0.0"
+Flask = "^3.0"
+numpy = "^1.26.2"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.1.0"
+flake8-unused-arguments = "^0.0.13"
+#uwsgi = "^2.0.23"
+
+[tool.poetry-exec-plugin.commands]
+app = "flask --app RockPaperScissors.app run"
+lint = "flake8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
